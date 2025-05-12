@@ -1,4 +1,6 @@
-# 이건 전후비교 해서 파손감지 됐는지 확인하는 코드(라우터로 바꿨는데 테스트 못함, yolov5폴더에 compare.py가 원본)
+import sys
+sys.path.append(r"C:\Users\user\Desktop\yolov5\yolov5")  # YOLOv5 소스코드 폴더 경로
+
 
 from fastapi import APIRouter, UploadFile, File
 import os
@@ -8,13 +10,15 @@ import torch
 from PIL import Image
 import io
 
+
 router = APIRouter()
 
 # YOLOv5 모델 경로
 weights_path = r"C:\Users\user\Desktop\yolov5\yolov5\runs\train\my_yolo_model\weights\best.pt"
 
-# YOLOv5 모델 로드
-model = torch.load(weights_path, map_location='cuda')['model'].float().fuse().eval()
+# YOLOv5 모델 로드 (weights_only=False 옵션 추가)
+model_data = torch.load(weights_path, map_location='cuda', weights_only=False)
+model = model_data['model'].float().fuse().eval()
 
 # 클래스 이름 리스트 (data.yaml 기준 순서!)
 class_names = ['crack', 'scratch']
@@ -29,7 +33,7 @@ def run_yolo_with_system(image_path, rental_id, folder_name):
 
     # detect.py 실행
     command = (
-        f"python yolov5/detect.py "
+        f"python \"C:/Users/user/Desktop/sheerent/yolov5/yolov5/detect.py\" "
         f"--weights \"{weights_path}\" "
         f"--source \"{image_path}\" "
         f"--conf 0.5 "
@@ -38,7 +42,13 @@ def run_yolo_with_system(image_path, rental_id, folder_name):
         f"--exist-ok "
         f"--save-txt"
     )
-    os.system(command)
+
+    # 명령어 실행 후 반환값 확인
+    return_code = os.system(command)
+    if return_code != 0:
+        print(f"Error occurred during detection. Command return code: {return_code}")
+    else:
+        print(f"Detection completed successfully for {image_path}")
 
     label_txt_dir = f"results/{rental_id}/{folder_name}/labels"
     class_counts = defaultdict(int)
@@ -85,9 +95,11 @@ async def check_damage(item_id: str, user_id: str, before_file: UploadFile = Fil
     before_file_path = f"temp/{before_img}"
     after_file_path = f"temp/{after_img}"
 
+    os.makedirs("temp", exist_ok=True)
+
     with open(before_file_path, "wb") as f:
         f.write(await before_file.read())
-    
+
     with open(after_file_path, "wb") as f:
         f.write(await after_file.read())
 

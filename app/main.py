@@ -6,7 +6,7 @@ from app.routers import ai, users, items, rentals
 app = FastAPI()
 
 # 테이블 자동 생성
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
 
 # 라우터 등록
 app.include_router(users.router)
