@@ -78,6 +78,6 @@ after = 'after.jpg'
 rental_id, damaged, damage_info = is_item_damaged(item_id, user_id, before, after)
 
 if damaged:
-    print(f"[{rental_id}] 파손 감지됨: {damage_info}")
+    print(f"[{rental_id}] 파손 감지: {damage_info}")
 else:
     print(f"[{rental_id}] 파손 없음")
